@@ -43,6 +43,7 @@
         html {
             scroll-behavior: smooth;
             scroll-padding-top: var(--nav-height);
+            overflow-x: hidden;
         }
 
         body {
@@ -52,6 +53,126 @@
             min-height: 100vh;
             color: var(--text-primary);
             line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ===== Full Page Scroll Container ===== */
+        .scroll-container {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-snap-stop: always;
+        }
+
+        .scroll-section {
+            height: 100vh;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            background: url('imgs/bg.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        /* ===== Hero Section ===== */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.35);
+        }
+        .hero-content {
+            position: relative;
+            text-align: center;
+            z-index: 1;
+        }
+        .typewriter {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 24px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            min-height: 2.5rem;
+        }
+        .typewriter::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        .typewriter.done::after {
+            display: none;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .hero-avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            border: 4px solid rgba(255, 255, 255, 0.85);
+            box-shadow: var(--shadow-3);
+            object-fit: cover;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+        }
+        .scroll-indicator:hover {
+            color: rgba(255, 255, 255, 1);
+        }
+        .scroll-indicator svg {
+            width: 24px;
+            height: 24px;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-8px); }
+            60% { transform: translateX(-50%) translateY(-4px); }
+        }
+
+        /* ===== Curtain Hero Effect ===== */
+        .hero-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hero-wrapper.hide {
+            transform: translateY(-100%);
+        }
+
+        /* ===== Main Content Section ===== */
+        .content-section {
+            min-height: 100vh;
+            padding-top: var(--nav-height);
+            opacity: 0;
+            transition: opacity 0.5s ease 0.3s;
+        }
+        .content-section.visible {
+            opacity: 1;
         }
 
         a { text-decoration: none; color: inherit; transition: color 0.2s; }
@@ -64,7 +185,6 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             height: var(--nav-height);
-            /* TDesign 风格毛玻璃：多层背景增强质感 */
             background: linear-gradient(
                 180deg,
                 rgba(255, 255, 255, 0.85) 0%,
@@ -74,17 +194,6 @@
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border-bottom: 1px solid rgba(231, 231, 231, 0.6);
             z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        /* 滚动时的增强效果 */
-        .navbar.scrolled {
-            background: linear-gradient(
-                180deg,
-                rgba(255, 255, 255, 0.95) 0%,
-                rgba(255, 255, 255, 0.9) 100%
-            );
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border-bottom-color: rgba(0, 82, 217, 0.1);
         }
         .navbar .container {
             max-width: var(--max-width);
@@ -108,12 +217,33 @@
             height: 28px;
             border-radius: 50%;
         }
+        .nav-menu {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover {
+            color: var(--text-primary);
+        }
+        .nav-btn.active {
+            color: var(--td-brand-color);
+        }
 
         /* ===== Main Layout ===== */
         .main-container {
             max-width: var(--max-width);
             margin: 0 auto;
-            padding: calc(var(--nav-height) + 32px) 24px 40px;
+            padding: 32px 24px 40px;
             display: flex;
             gap: 24px;
         }
@@ -123,12 +253,11 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            position: fixed;
-            top: calc(var(--nav-height) + 32px);
-            left: max(24px, calc((100vw - var(--max-width)) / 2 + 24px));
+            position: sticky;
+            top: 32px;
             width: 320px;
-            max-height: calc(100vh - var(--nav-height) - 64px);
-            overflow-y: auto;
+            flex-shrink: 0;
+            align-self: flex-start;
         }
         .sidebar::-webkit-scrollbar {
             width: 4px;
@@ -314,7 +443,6 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
-            margin-left: calc(320px + 24px);
             flex: 1;
             min-width: 0;
         }
@@ -454,19 +582,15 @@
             .sidebar {
                 position: relative;
                 top: auto;
-                left: auto;
                 width: 100%;
                 max-width: 400px;
                 margin: 0 auto;
-                max-height: none;
-            }
-            .content {
-                margin-left: 0;
+                align-self: center;
             }
         }
         @media (max-width: 600px) {
             .main-container {
-                padding: calc(var(--nav-height) + 16px) 16px 24px;
+                padding: 16px;
             }
             .project-item {
                 flex-direction: column;
@@ -475,22 +599,47 @@
             .project-meta {
                 flex-wrap: wrap;
             }
+            .hero-avatar {
+                width: 100px;
+                height: 100px;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
         <div class="container">
             <a href="#" class="nav-logo">
                 <img src="imgs/avatar.png" alt="alchemilk" />
                 alchemilk
             </a>
+            <div class="nav-menu">
+                <button class="nav-btn active" data-page="home">首页</button>
+                <button class="nav-btn" data-page="profile">个人简介</button>
+            </div>
         </div>
     </nav>
 
-    <!-- Main Container -->
-    <div class="main-container">
+    <!-- Hero Wrapper (acts as curtain) -->
+    <div class="hero-wrapper" id="heroWrapper">
+        <section class="scroll-section hero">
+            <div class="hero-content">
+                <img src="imgs/avatar.png" alt="alchemilk" class="hero-avatar" />
+                <p class="typewriter" id="typewriter"></p>
+            </div>
+            <div class="scroll-indicator" id="scrollIndicator">
+                <span>向下滚动</span>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+                </svg>
+            </div>
+        </section>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-section" id="contentSection">
+        <div class="main-container">
         <!-- Left Sidebar -->
         <aside class="sidebar">
             <!-- Profile Card -->
@@ -667,9 +816,112 @@
             </div>
         </main>
     </div>
+    </div>
 
     <script>
-        // ===== Tab Navigation =====
+        (function() {
+            const text = '你好，我是alchemilk，欢迎来到我的主页';
+            const typewriter = document.getElementById('typewriter');
+            let index = 0;
+            
+            function type() {
+                if (index < text.length) {
+                    typewriter.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, 100);
+                } else {
+                    typewriter.classList.add('done');
+                }
+            }
+            
+            setTimeout(type, 500);
+        })();
+
+        (function() {
+            const heroWrapper = document.getElementById('heroWrapper');
+            const scrollIndicator = document.getElementById('scrollIndicator');
+            const contentSection = document.getElementById('contentSection');
+            const navLogo = document.querySelector('.nav-logo');
+
+            let isScrolling = false;
+            let hasScrolledToContent = false;
+
+            window.addEventListener('wheel', function(e) {
+                if (!isScrolling) {
+                    if (e.deltaY > 0 && !hasScrolledToContent) {
+                        isScrolling = true;
+                        heroWrapper.classList.add('hide');
+                        contentSection.classList.add('visible');
+                        hasScrolledToContent = true;
+                        
+                        document.querySelectorAll('.nav-btn').forEach(function(btn) {
+                            btn.classList.remove('active');
+                        });
+                        document.querySelector('.nav-btn[data-page="profile"]').classList.add('active');
+                        
+                        setTimeout(function() {
+                            isScrolling = false;
+                        }, 700);
+                    } else if (e.deltaY < 0 && hasScrolledToContent) {
+                        isScrolling = true;
+                        heroWrapper.classList.remove('hide');
+                        contentSection.classList.remove('visible');
+                        hasScrolledToContent = false;
+                        
+                        document.querySelectorAll('.nav-btn').forEach(function(btn) {
+                            btn.classList.remove('active');
+                        });
+                        document.querySelector('.nav-btn[data-page="home"]').classList.add('active');
+                        
+                        setTimeout(function() {
+                            isScrolling = false;
+                        }, 700);
+                    }
+                }
+            }, { passive: true });
+
+            scrollIndicator.addEventListener('click', function() {
+                heroWrapper.classList.add('hide');
+                contentSection.classList.add('visible');
+                hasScrolledToContent = true;
+            });
+
+            navLogo.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (hasScrolledToContent) {
+                    heroWrapper.classList.remove('hide');
+                    contentSection.classList.remove('visible');
+                    hasScrolledToContent = false;
+                    document.querySelectorAll('.nav-btn').forEach(function(btn) {
+                        btn.classList.remove('active');
+                    });
+                    document.querySelector('.nav-btn[data-page="home"]').classList.add('active');
+                }
+            });
+
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const page = this.getAttribute('data-page');
+                    
+                    navBtns.forEach(function(b) {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    if (page === 'home') {
+                        heroWrapper.classList.remove('hide');
+                        contentSection.classList.remove('visible');
+                        hasScrolledToContent = false;
+                    } else if (page === 'profile') {
+                        heroWrapper.classList.add('hide');
+                        contentSection.classList.add('visible');
+                        hasScrolledToContent = true;
+                    }
+                });
+            });
+        })();
+
         (function() {
             const tabBtns = document.querySelectorAll('.tab-btn');
             const tabContents = document.querySelectorAll('.tab-content');
@@ -688,37 +940,6 @@
                     });
                     document.getElementById(targetTab).classList.add('active');
                 });
-            });
-        })();
-
-        // ===== TDesign 风格导航栏交互 =====
-        (function() {
-            const navbar = document.querySelector('.navbar');
-            
-            // 滚动监听 - 添加 scrolled 类增强毛玻璃效果
-            let ticking = false;
-            
-            function updateNavbar() {
-                const scrollY = window.scrollY;
-                if (scrollY > 20) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
-                ticking = false;
-            }
-            
-            window.addEventListener('scroll', function() {
-                if (!ticking) {
-                    window.requestAnimationFrame(updateNavbar);
-                    ticking = true;
-                }
-            }, { passive: true });
-            
-            // Logo 点击回到顶部
-            document.querySelector('.nav-logo').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         })();
     </script>
