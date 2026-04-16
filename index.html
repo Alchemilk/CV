@@ -98,7 +98,8 @@
             color: #ffffff;
             margin-bottom: 24px;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-            min-height: 2.5rem;
+            min-height: 5rem;
+            line-height: 1.5;
         }
         .typewriter::after {
             content: '|';
@@ -589,6 +590,9 @@
             }
         }
         @media (max-width: 600px) {
+            :root {
+                --nav-height: 56px;
+            }
             .main-container {
                 padding: 16px;
             }
@@ -602,6 +606,24 @@
             .hero-avatar {
                 width: 100px;
                 height: 100px;
+            }
+            .content-section {
+                min-height: 100vh;
+                padding-top: var(--nav-height);
+                position: relative;
+                top: 0;
+            }
+            .hero-wrapper {
+                height: 100dvh;
+            }
+            body {
+                height: 100dvh;
+                overflow-y: scroll;
+                -webkit-overflow-scrolling: touch;
+            }
+            html {
+                height: 100%;
+                overflow: hidden;
             }
         }
     </style>
@@ -820,17 +842,35 @@
 
     <script>
         (function() {
-            const text = '你好，我是alchemilk，欢迎来到我的主页';
+            const lines = ['你好，我是alchemilk', '欢迎来到我的主页'];
             const typewriter = document.getElementById('typewriter');
-            let index = 0;
+            let lineIndex = 0;
+            let charIndex = 0;
             
             function type() {
-                if (index < text.length) {
-                    typewriter.textContent += text.charAt(index);
-                    index++;
-                    setTimeout(type, 100);
-                } else {
-                    typewriter.classList.add('done');
+                if (lineIndex < lines.length) {
+                    if (charIndex < lines[lineIndex].length) {
+                        if (charIndex === 0 && lineIndex > 0) {
+                            typewriter.innerHTML += '<br>';
+                        }
+                        const currentText = typewriter.innerHTML;
+                        const currentLine = lines[lineIndex].substring(0, charIndex + 1);
+                        if (lineIndex === 0) {
+                            typewriter.textContent = currentLine;
+                        } else {
+                            typewriter.innerHTML = lines[0] + '<br>' + currentLine;
+                        }
+                        charIndex++;
+                        setTimeout(type, 100);
+                    } else {
+                        lineIndex++;
+                        charIndex = 0;
+                        if (lineIndex < lines.length) {
+                            setTimeout(type, 300);
+                        } else {
+                            typewriter.classList.add('done');
+                        }
+                    }
                 }
             }
             
@@ -846,6 +886,22 @@
             let isScrolling = false;
             let hasScrolledToContent = false;
 
+            window.addEventListener('load', function() {
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+            });
+
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    setTimeout(function() {
+                        window.scrollTo(0, 0);
+                        document.body.scrollTop = 0;
+                        document.documentElement.scrollTop = 0;
+                    }, 100);
+                }
+            });
+
             window.addEventListener('wheel', function(e) {
                 if (!isScrolling) {
                     if (e.deltaY > 0 && !hasScrolledToContent) {
@@ -853,6 +909,9 @@
                         heroWrapper.classList.add('hide');
                         contentSection.classList.add('visible');
                         hasScrolledToContent = true;
+                        window.scrollTo(0, 0);
+                        document.body.scrollTop = 0;
+                        document.documentElement.scrollTop = 0;
                         
                         document.querySelectorAll('.nav-btn').forEach(function(btn) {
                             btn.classList.remove('active');
@@ -880,10 +939,77 @@
                 }
             }, { passive: true });
 
+            let touchStartY = 0;
+            let touchEndY = 0;
+            
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function(e) {
+                touchEndY = e.changedTouches[0].screenY;
+                handleSwipe();
+            }, { passive: true });
+            
+            function handleSwipe() {
+                if (!isScrolling) {
+                    const swipeThreshold = 50;
+                    const diff = touchStartY - touchEndY;
+                    
+                    if (diff > swipeThreshold && !hasScrolledToContent) {
+                        isScrolling = true;
+                        heroWrapper.classList.add('hide');
+                        contentSection.classList.add('visible');
+                        hasScrolledToContent = true;
+                        setTimeout(function() {
+                            window.scrollTo(0, 0);
+                            document.body.scrollTop = 0;
+                            document.documentElement.scrollTop = 0;
+                            window.scrollIntoView({ behavior: 'auto', block: 'start' });
+                        }, 100);
+                        
+                        document.querySelectorAll('.nav-btn').forEach(function(btn) {
+                            btn.classList.remove('active');
+                        });
+                        document.querySelector('.nav-btn[data-page="profile"]').classList.add('active');
+                        
+                        setTimeout(function() {
+                            isScrolling = false;
+                        }, 700);
+                    } else if (diff < -swipeThreshold && hasScrolledToContent) {
+                        isScrolling = true;
+                        heroWrapper.classList.remove('hide');
+                        contentSection.classList.remove('visible');
+                        hasScrolledToContent = false;
+                        setTimeout(function() {
+                            window.scrollTo(0, 0);
+                            document.body.scrollTop = 0;
+                            document.documentElement.scrollTop = 0;
+                            window.scrollIntoView({ behavior: 'auto', block: 'start' });
+                        }, 100);
+                        
+                        document.querySelectorAll('.nav-btn').forEach(function(btn) {
+                            btn.classList.remove('active');
+                        });
+                        document.querySelector('.nav-btn[data-page="home"]').classList.add('active');
+                        
+                        setTimeout(function() {
+                            isScrolling = false;
+                        }, 700);
+                    }
+                }
+            }
+
             scrollIndicator.addEventListener('click', function() {
                 heroWrapper.classList.add('hide');
                 contentSection.classList.add('visible');
                 hasScrolledToContent = true;
+                setTimeout(function() {
+                    window.scrollTo(0, 0);
+                    document.body.scrollTop = 0;
+                    document.documentElement.scrollTop = 0;
+                    window.scrollIntoView({ behavior: 'auto', block: 'start' });
+                }, 100);
             });
 
             navLogo.addEventListener('click', function(e) {
@@ -913,10 +1039,22 @@
                         heroWrapper.classList.remove('hide');
                         contentSection.classList.remove('visible');
                         hasScrolledToContent = false;
+                        setTimeout(function() {
+                            window.scrollTo(0, 0);
+                            document.body.scrollTop = 0;
+                            document.documentElement.scrollTop = 0;
+                            window.scrollIntoView({ behavior: 'auto', block: 'start' });
+                        }, 100);
                     } else if (page === 'profile') {
                         heroWrapper.classList.add('hide');
                         contentSection.classList.add('visible');
                         hasScrolledToContent = true;
+                        setTimeout(function() {
+                            window.scrollTo(0, 0);
+                            document.body.scrollTop = 0;
+                            document.documentElement.scrollTop = 0;
+                            window.scrollIntoView({ behavior: 'auto', block: 'start' });
+                        }, 100);
                     }
                 });
             });
